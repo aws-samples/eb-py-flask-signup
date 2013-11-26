@@ -19,7 +19,6 @@ import json
 import flask
 from flask import request, Response
 
-import boto
 from boto import dynamodb2
 from boto.dynamodb2.table import Table
 from boto.dynamodb2.items import Item
@@ -45,22 +44,24 @@ application.debug = application.config['FLASK_DEBUG'] in ['true', 'True']
 # Connect to DynamoDB and get ref to Table
 ddb_conn = dynamodb2.connect_to_region(application.config['AWS_REGION'])
 ddb_table = Table(table_name=application.config['STARTUP_SIGNUP_TABLE'],
-               connection=ddb_conn)
-               
+                  connection=ddb_conn)
+
 # Connect to SNS
 sns_conn = sns.connect_to_region(application.config['AWS_REGION'])
+
 
 @application.route('/')
 def welcome():
     theme = application.config['THEME']
     return flask.render_template('index.html', theme=theme, flask_debug=application.debug)
 
+
 @application.route('/signup', methods=['POST'])
 def signup():
     signup_data = dict()
     for item in request.form:
         signup_data[item] = request.form[item]
-    print(signup_data)
+
     try:
         store_in_dynamo(signup_data)
         publish_to_sns(signup_data)
@@ -68,16 +69,19 @@ def signup():
         return Response("", status=409, mimetype='application/json')
 
     return Response(json.dumps(signup_data), status=201, mimetype='application/json')
- 
+
+
 def store_in_dynamo(signup_data):
-    signup = Item(ddb_table, data=signup_data)
-    signup.save()
-    
+    signup_item = Item(ddb_table, data=signup_data)
+    signup_item.save()
+
+
 def publish_to_sns(signup_data):
     try:
-        sns_conn.publish(application.config['NEW_SIGNUP_TOPIC'], signup_data, "New signup: %s" % signup_data['email'])
+        sns_conn.publish(application.config['NEW_SIGNUP_TOPIC'], json.dumps(signup_data), "New signup: %s" % signup_data['email'])
     except Exception as ex:
         sys.stderr.write("Error publishing subscription message to SNS: %s" % ex.message)
+
 
 if __name__ == '__main__':
     application.run(host='0.0.0.0')

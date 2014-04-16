@@ -4,3 +4,4 @@ development.config
 .elasticbeanstalk/
 release/
 .idea/
+Dockerrun.local.json

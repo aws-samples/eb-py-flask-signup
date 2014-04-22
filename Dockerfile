@@ -1,4 +1,3 @@
-# DOCKER-VERSION 0.3.4
 FROM ubuntu:12.10
 
 # Install Python Setuptools

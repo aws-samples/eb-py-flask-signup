@@ -3,6 +3,16 @@ This Python sample application uses the [Flask](http://flask.pocoo.org/) framewo
 
 This version of the application has been modified so it can be packaged and deployed as a Docker container. 
 
+## Quick Start
+Follow the steps below to deploy the demo application to an Elastic Beanstalk Docker environment. Accept the default settings unless indicated otherwise in the steps below:
+
+1. Download the ZIP file from Releases at [https://github.com/awslabs/eb-py-flask-signup/releases/tag/docker-v1.0](https://github.com/awslabs/eb-py-flask-signup/releases/tag/docker-v1.0)
+2. Login to the [Elastic Beanstalk Management Console](https://console.aws.amazon.com/elasticbeanstalk)
+3. Click `Create New Application` and give your app a name and description
+4. Choose 'Docker' in the 'Predefined configuration' dropdown and click `Next`
+5. Upload the ZIP file downloaded in Step 1
+6. Review and launch the application
+
 ## The Docker Parts
 Packaging this Python application with Docker required us to add two files:
 

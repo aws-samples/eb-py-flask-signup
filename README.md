@@ -3,7 +3,17 @@ This Python sample application uses the [Flask](http://flask.pocoo.org/) framewo
 
 This version of the application has been modified so it can be packaged and deployed as a Docker container. 
 
-## Quick Start
+## Quick Start - `eb` CLI
+Follow the steps below to deploy the demo application to an Elastic Beanstalk Docker environment. This assumes you have the `eb` CLI ([http://aws.amazon.com/code/6752709412171743](http://aws.amazon.com/code/6752709412171743)) installed.
+
+```bash
+git clone git@github.com:awslabs/eb-py-flask-signup.git
+eb init
+eb start
+eb push
+```
+
+## Quick Start - Management Console
 Follow the steps below to deploy the demo application to an Elastic Beanstalk Docker environment. Accept the default settings unless indicated otherwise in the steps below:
 
 1. Download the ZIP file from Releases at [https://github.com/awslabs/eb-py-flask-signup/releases/tag/docker-v1.0](https://github.com/awslabs/eb-py-flask-signup/releases/tag/docker-v1.0)

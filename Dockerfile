@@ -1,6 +1,7 @@
 FROM ubuntu:12.10
 
 # Install Python Setuptools
+RUN apt-get update -y
 RUN apt-get install -y python-setuptools
 
 # Install pip

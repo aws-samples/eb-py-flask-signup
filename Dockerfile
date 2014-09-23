@@ -1,4 +1,7 @@
-FROM ubuntu:12.10
+FROM ubuntu:14.04
+
+# Update packages
+RUN apt-get update -y
 
 # Install Python Setuptools
 RUN apt-get install -y python-setuptools

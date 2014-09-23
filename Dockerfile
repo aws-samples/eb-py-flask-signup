@@ -1,7 +1,9 @@
 FROM ubuntu:14.04
 
-# Install Python Setuptools
+# Update packages
 RUN apt-get update -y
+
+# Install Python Setuptools
 RUN apt-get install -y python-setuptools
 
 # Install pip

@@ -28,7 +28,10 @@ Packaging this Python application with Docker required us to add two files:
 
 1. `Dockerfile` - Elastic Beanstalk uses Docker on each of your EC2 Instances to build the Docker Image described by this file:
 
-        FROM ubuntu:12.10
+        FROM ubuntu:14.04
+
+        # Update packages
+        RUN apt-get update -y
 
         # Install Python Setuptools
         RUN apt-get install -y python-setuptools

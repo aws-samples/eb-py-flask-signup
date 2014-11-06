@@ -1,0 +1,9 @@
+{
+	"AWSEBDockerrunVersion": "1",
+	"Volumes": [
+		{
+			"HostDirectory": "/etc/config",
+			"ContainerDirectory": "/etc/config"
+		}
+	]
+}

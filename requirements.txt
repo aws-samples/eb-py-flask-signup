@@ -1,7 +1,2 @@
 Flask==0.10.1
-Jinja2==2.7.1
-MarkupSafe==0.18
-Werkzeug==0.9.4
-boto==2.14.0
-itsdangerous==0.23
-wsgiref==0.1.2
+boto==2.34.0

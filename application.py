@@ -19,11 +19,11 @@ import json
 import flask
 from flask import request, Response
 
-from boto import dynamodb2
-from boto.dynamodb2.table import Table
-from boto.dynamodb2.items import Item
-from boto.dynamodb2.exceptions import ConditionalCheckFailedException
-from boto import sns
+import boto3
+from botocore.exceptions import ClientError
+
+from aws_xray_sdk.core import xray_recorder, patch
+from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 
 # Default config vals
 THEME = 'default' if os.environ.get('THEME') is None else os.environ.get('THEME')
@@ -41,13 +41,22 @@ application.config.from_envvar('APP_CONFIG', silent=True)
 # Only enable Flask debugging if an env var is set to true
 application.debug = application.config['FLASK_DEBUG'] in ['true', 'True']
 
-# Connect to DynamoDB and get ref to Table
-ddb_conn = dynamodb2.connect_to_region(application.config['AWS_REGION'])
-ddb_table = Table(table_name=application.config['STARTUP_SIGNUP_TABLE'],
-                  connection=ddb_conn)
 
-# Connect to SNS
-sns_conn = sns.connect_to_region(application.config['AWS_REGION'])
+region = application.config['AWS_REGION']
+# Get ref to DynamoDB table
+dynamodb = boto3.resource('dynamodb', region_name=region)
+ddb_table = dynamodb.Table(application.config['STARTUP_SIGNUP_TABLE'])
+
+# Get SNS client
+sns_client = boto3.client('sns', region_name=region)
+
+# Configure xray recorder
+plugins = ('ec2_plugin', 'elasticbeanstalk_plugin')
+xray_recorder.configure(service='Signup', plugins=plugins)
+XRayMiddleware(application, xray_recorder)
+
+libs_to_patch = ('boto3',)
+patch(libs_to_patch)
 
 
 @application.route('/')
@@ -65,20 +74,25 @@ def signup():
     try:
         store_in_dynamo(signup_data)
         publish_to_sns(signup_data)
-    except ConditionalCheckFailedException:
+    except ClientError:
         return Response("", status=409, mimetype='application/json')
 
     return Response(json.dumps(signup_data), status=201, mimetype='application/json')
 
 
 def store_in_dynamo(signup_data):
-    signup_item = Item(ddb_table, data=signup_data)
-    signup_item.save()
+    ddb_table.put_item(
+        Item=signup_data,
+        Expected={signup_data['email']: {'Exists': False}}
+    )
 
 
 def publish_to_sns(signup_data):
     try:
-        sns_conn.publish(application.config['NEW_SIGNUP_TOPIC'], json.dumps(signup_data), "New signup: %s" % signup_data['email'])
+        sns_client.publish(TopicArn=application.config['NEW_SIGNUP_TOPIC'],
+                           Message=json.dumps(signup_data),
+                           Subject="New signup: %s" % signup_data['email']
+                           )
     except Exception as ex:
         sys.stderr.write("Error publishing subscription message to SNS: %s" % ex.message)
 

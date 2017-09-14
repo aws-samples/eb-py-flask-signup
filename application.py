@@ -52,7 +52,31 @@ sns_client = boto3.client('sns', region_name=region)
 
 # Configure xray recorder
 plugins = ('ec2_plugin', 'elasticbeanstalk_plugin')
-xray_recorder.configure(service='Signup', plugins=plugins)
+sampling_rules = {
+    "version": 1,
+    "default": {
+        "fixed_target": 1,
+        "rate": 0.05
+    },
+    "rules": [
+        {
+            "description": "Skip health checks",
+            "service_name": "*",
+            "http_method": "*",
+            "url_path": "/ping",
+            "fixed_target": 0,
+            "rate": 0
+        }
+    ]
+}
+
+xray_recorder.configure(
+    service='Signup',
+    plugins=plugins,
+    dynamic_naming='*elasticbeanstalk*',
+    sampling_rules=sampling_rules,
+)
+
 XRayMiddleware(application, xray_recorder)
 
 libs_to_patch = ('boto3',)
@@ -78,6 +102,11 @@ def signup():
         return Response("", status=409, mimetype='application/json')
 
     return Response(json.dumps(signup_data), status=201, mimetype='application/json')
+
+
+@application.route('/ping', methods=['GET'])
+def ping():
+    return Response("", status=200, mimetype='application/json')
 
 
 def store_in_dynamo(signup_data):
